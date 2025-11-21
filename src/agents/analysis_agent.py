@@ -1,7 +1,7 @@
 from typing import List
-from llama_index.core.agent import ReActAgent 
-from llama_index.core.tools import BaseTool
-from llama index.core.llms import LLM
+from llama_index.core.agent import ReActAgent
+from llama_index.tools import BaseTool
+from llama_index.core.llms import LLM
 
 ANALYSIS_AGENT_PROMPT = """You are an analysis specialist Agent.
 
@@ -31,14 +31,14 @@ def create_analysis_agent(
     tools: List[BaseTool],
     verbose: bool = True
     ) -> ReActAgent:
-         agent=ReActAgent.from_tools(
-            tools=tools,
-            llm=llm,
-            verbose=verbose,
-            context=ANALYSIS_AGENT_PROMPT,
-            max_iterations=10
-         )
-      return agent
+    agent = ReActAgent.from_tools(
+        tools=tools,
+        llm=llm,
+        verbose=verbose,
+        context=ANALYSIS_AGENT_PROMPT,
+        max_iterations=10
+    )
+    return agent
 
 
 
