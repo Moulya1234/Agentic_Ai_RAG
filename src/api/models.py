@@ -1,6 +1,6 @@
-from typing import List,Dict,Any,Optional
-from pydantic import BaseModel,Field
-from datetime import datetime
+from typing import List,Optional
+from pydantic import BaseModel, Field
+from datetime import datetime, timezone
 
 class ResearchQuery(BaseModel):
     query: str = Field(..., min_length=1, max_length=1000, description="The research question")
@@ -15,16 +15,51 @@ class ResearchQuery(BaseModel):
                 "stream": True
             }
         }
+
 class Source(BaseModel):
-    title:str
-    url:str
-    highlights:Optional[List[str]]=[]
-    published_date:Optional[str]=None
-    author:Optional[str]=None
+    title: str
+    url: str
+    highlights: List[str] = Field(default_factory=list)
+    published_date: Optional[str] = None
+    author: Optional[str] = None
 
 class ResearchResponse(BaseModel):
-    query:str
-    answer:str
-    sources:List[Source]
-    research_time_seconds:float
-    timestamp:datetime=Field(default_factory=datetime.now(datetime.timezone.utc))
+    query: str
+    answer: str
+    sources: List[Source]
+    research_time_seconds: float
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "query": "what are the latest developments in quantum computing?",
+                "answer": "Recent developments in quantum computing include...",
+                "sources": [
+                    {
+                        "title": "Quantum Computing Breakthrough 2025",
+                        "url": "https://example.com/article",
+                        "highlights": ["key development...", "Important findings..."]
+                    }
+                ],
+                "research_time_seconds":8.856,
+                "timestamp":"2025-11-22T12:30:00"
+            }
+        }
+
+class ErrorResponse(BaseModel):
+    error: str
+    detail: Optional[str] = None
+    timestamp: datetime = Field(default_factory=datetime.now(datetime.timezone.utc))
+
+class HealthResponse(BaseModel):
+    status: str
+    version: str
+    timestamp: datetime = Field(default_factory=datetime.now(datetime.timezone.utc))
+    services: Dict[str,str] = {}
+    
+class StreamChunk(BaseModel):
+    type: str
+    content: str
+    metadata: Optional[Dict[str,Any]] = None
+    timestamp: datetime = Field(default_factory=datetime.now(datetime.timezone.utc))
