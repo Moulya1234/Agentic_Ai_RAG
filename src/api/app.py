@@ -129,3 +129,37 @@ async def research_query(query: ResearchQuery):
             status_code=500,
             detail=f"Research query failed: {str(e)}"
         )
+
+@app.websocket("/api/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        data = await websocket.receive_json()
+        query = data.get("query","")
+        num_results = data.get("num_results",5)
+
+        if not query:
+            await websocket.send_json({
+                "type": "error",
+                "content": "Query is required",
+                "timestamp": time.time()
+            })
+            await websocket.close()
+            return
+        
+        await websocket.send_json({
+            "type": "status",
+            "content": f"Starting research for: {query}",
+            "timestamp": time.time()
+        })
+
+        async for chunk in research_service.stream_research_query(
+            query=query,
+            num_results=num_results
+        ):
+            await websocket.send_json({
+                "type": "chunk",
+                "content": chunk,
+                "timestamp": time.time()
+            })
+        
